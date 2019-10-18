@@ -110,28 +110,27 @@ class Nginx extends Common
      */
     public function actionNginxConf()
     {
-        $this->sendMsg('', json_encode([
+        return $this->sendMsg('', [
             'nginxStart' => $this->isStart,
             'nginxConf' => $this->confPath,
             'confList' => $this->conFiles,
             'confContent' => $this->confContent
-        ]));
+        ]);
     }
 
     /**
      * 获取单个配置文件内容
-     * @throws WorkError
      */
     public function actionGetConf()
     {
         $file = $this->get('confFile');
         $filePath = $this->conDir . DIRECTORY_SEPARATOR . $file;
         if (empty($file)) {
-            $this->error("参数错误");
+            return $this->error("参数错误");
         }
         if (!in_array($file, $this->conFiles)) {
-            $this->error("未找到{$filePath}文件");
+            return $this->error("未找到{$filePath}文件");
         }
-        $this->sendMsg('ok', ['data' => \getFileContent($filePath)]);
+        return $this->sendMsg('ok', ['data' => \getFileContent($filePath)]);
     }
 }

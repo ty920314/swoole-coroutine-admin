@@ -42,3 +42,21 @@ function getFileContent($filePath)
     }
     return $content;
 }
+
+/**
+ * 解析路由
+ * @param $pathInfo
+ * @return array
+ */
+function getParam($pathInfo)
+{
+    // 拆分模块为数组
+    $pathInfo = explode('/', $pathInfo);
+    if(!empty($pathInfo)){
+        foreach ($pathInfo as &$v){
+            $v = strtolower($v);
+        }
+    }
+    empty($pathInfo[2]) && $pathInfo[2] = 'index';
+    return $pathInfo;
+}

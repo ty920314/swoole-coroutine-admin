@@ -76,28 +76,27 @@ class Common extends Controller
 
     /**
      * @param string $msg
-     * @param int $code
-     * @throws WorkError
+     * @return string
      */
-    public function error($msg = '',$code = 404)
+    public function error($msg = '')
     {
-        throw new WorkError(json_encode(
+        return json_encode(
             [
                 'error'=>2,
                 'msg'=>$msg,
                 'data'=>[]
             ]
-        ), $code);
+        );
     }
 
     public function sendMsg($msg, $data)
     {
-        $this->response->end(json_encode(
+        return json_encode(
             [
                 'error'=>0,
                 'msg'=>$msg,
                 'data'=>$data
             ]
-        ));
+        );
     }
 }
