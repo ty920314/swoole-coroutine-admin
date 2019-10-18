@@ -1,0 +1,25 @@
+{
+    "name": "ty/tyadmin",
+    "description": "a local manage system",
+    "authors": [
+        {
+            "name": "陶威伍",
+            "email": "taoweiwu@100tal.com"
+        }
+    ],
+    "require": {
+        "swoole/ide-helper": "@dev",
+        "monolog/monolog": "^2.0",
+      "ext-json": "*"
+    },
+    "autoload": {
+
+      "psr-4": {
+        "app\\" : "src"
+      },
+      "files": [
+        "src/Helper.php"
+      ]
+
+    }
+}
