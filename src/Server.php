@@ -71,19 +71,22 @@ class Server
 
     public function onRequest(Request $request, Response $response)
     {
-        $uri = \getParam($request->server['request_uri']);
-        try {
-            $reflection = new \ReflectionClass("\\app\\controller\\" . ucfirst($uri[1]));
-            $method = $uri[2];
-            $hasMethod = $reflection->getMethod('action' . ucfirst($method));
-            if ($hasMethod) {
-                $response->end(call_user_func([self::getController($reflection->getName(), $request, $response), 'action' . ucfirst($method)]));
-            } else {
-                $response->end(sprintf("action method %s does not exist", $uri[1]));
+        go(function () use ($request, $response) {
+            $uri = \getParam($request->server['request_uri']);
+            try {
+                $reflection = new \ReflectionClass("\\app\\controller\\" . ucfirst($uri[1]));
+                $method = $uri[2];
+                $hasMethod = $reflection->getMethod('action' . ucfirst($method));
+                if ($hasMethod) {
+                    $response->end(call_user_func([self::getController($reflection->getName(), $request, $response), 'action' . ucfirst($method)]));
+                } else {
+                    $response->end(sprintf("action method %s does not exist", $uri[1]));
+                }
+            } catch (\ReflectionException $e) {
+                $response->end(sprintf("module %s does not exist", $uri[1]));
             }
-        } catch (\ReflectionException $e) {
-            $response->end(sprintf("module %s does not exist", $uri[1]));
-        }
+        });
+
     }
 
     /**
@@ -95,11 +98,7 @@ class Server
      */
     private static function getController($controller, $req, $res)
     {
-        static $controllers = [];
-        if (!isset($controllers[$controller])) {
-            return new $controller($req, $res);
-        }
-        return $controllers[$controller];
+        return new $controller($req, $res);
     }
 
 }

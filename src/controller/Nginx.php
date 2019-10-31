@@ -6,7 +6,6 @@ namespace app\controller;
 
 use app\lib\WorkError;
 use Co\System;
-use Swoole\Coroutine;
 
 class Nginx extends Common
 {
@@ -31,6 +30,10 @@ class Nginx extends Common
      * @var array *.conf list
      */
     private $conFiles;
+    /**
+     * @var false|string
+     */
+    private $nginxBin;
 
     /**
      * @throws WorkError
@@ -52,7 +55,7 @@ class Nginx extends Common
     {
         $nginxBinPathRes = System::exec("which nginx");
         if ($nginxBinPathRes['output']) {
-            $nginxBinPath = substr($nginxBinPathRes['output'], 0, -1);
+            $this->nginxBin = $nginxBinPath = substr($nginxBinPathRes['output'], 0, -1);
             $res = System::exec(sprintf("%s -t 2>&1", $nginxBinPath))['output'];
             preg_match("/\/[\w\/.]+conf/", $res, $result);
             $this->confPath = $result[0];
@@ -82,7 +85,7 @@ class Nginx extends Common
 
     /**
      * 获取nginx *.conf 文件列表
-     * 会在 nginx.conf 加入 include servers/*
+     * 会在 nginx.conf 加入 include servers/* 并重启nginx
      */
     private function _confDir()
     {
@@ -92,6 +95,9 @@ class Nginx extends Common
             $tmp[count($tmp) - 2] = PHP_EOL . "     include servers/*;" . PHP_EOL;
             $this->confContent = join("}", $tmp);
             System::writeFile($this->confPath, $this->confContent);
+            if($this->isStart){
+                System::exec($this->nginxBin." -s reload");
+            }
         }
         unset($tmp);
         $pathInfo = pathinfo($this->confPath);
@@ -132,5 +138,37 @@ class Nginx extends Common
             return $this->error("未找到{$filePath}文件");
         }
         return $this->sendMsg('ok', ['data' => \getFileContent($filePath)]);
+    }
+
+    /**
+     * 关闭nginx
+     * @return false|string
+     */
+    public function actionClose()
+    {
+        System::exec("ps -ef | grep nginx | awk '{print $2}' | xargs kill -9");
+        logger()->info("ps -ef | grep nginx | awk '{print $2}' | xargs kill -9");
+        return $this->sendMsg('ok', []);
+    }
+
+    /**
+     * 开启nginx
+     * @return false|string
+     */
+    public function actionOpen()
+    {
+        System::exec($this->nginxBin);
+        return $this->sendMsg('ok', []);
+    }
+
+    /**
+     * 重启nginx
+     * @return false|string
+     */
+    public function actionReload()
+    {
+        System::exec($this->nginxBin." -s reload");
+        logger()->info($this->nginxBin." -s reload");
+        return $this->sendMsg('ok', []);
     }
 }
